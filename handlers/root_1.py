@@ -123,7 +123,7 @@ async def handle_message(message: types.Message, session: AsyncSession, state: F
                 strs += f"{subjects[key][0]} - {subjects[key][1]} (обязательно)\n"
             elif value == False:
                 strs += f"{subjects[key][0]} - {subjects[key][1]} (на выбор)\n"
-        elif key in ("year_2023", "year_2022", "year_2022") and value != 0:
+        elif key in ("year_2023", "year_2022", "year_2021") and value != 0:
             balls += f"{years[key]} год: {value} баллов\n"
 
     await message.answer(f"Чтобы поступить на эту программу необходимо сдать:\n{strs}")
