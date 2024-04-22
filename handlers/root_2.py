@@ -132,11 +132,12 @@ async def handle_message(message: types.Message, state: FSMContext):
                          #"Ты можешь узнать о каждом факультете перейдя по соответстующей ссылке.\n"
                          "Выбери самый интересный для тебя факультет\n",
                          reply_markup=reply.get_keyboard(
-                             facultets,
+                             facultets[:-2],
                              placeholder="На какой факультет тебя интересует?",
-                             sizes=(*[1]*(len(facultets)-2), 2)
+                             sizes=(*[1]*(len(facultets)-2),)
                          ))
     await state.set_state(filler.facultet_1)
+
 
 @root_2.message(StateFilter(filler.facultet_1, filler.facultet_2, filler.facultet_3), F.text == "Я расставил проиритеты")
 async def handle_message(message: types.Message, session: AsyncSession, state: FSMContext):
@@ -173,9 +174,9 @@ async def handle_message(message: types.Message, state: FSMContext):
     await message.answer("Замечательный выбор!\n"
                          "Куда ещё?",
                          reply_markup=reply.get_keyboard(
-                             mas,
+                             mas[:-2],
                              placeholder="Какой факультет тебя интересует?",
-                             sizes=(*[1] * (len(mas) - 2), 2)
+                             sizes=(*[1] * (len(mas) - 2),)
                          ))
     await state.set_state(filler.facultet_2)
 
@@ -190,9 +191,9 @@ async def handle_message(message: types.Message, state: FSMContext):
     await message.answer("А ты разбираешься!\n"
                          "Куда-нибудь ещё хочешь?",
                          reply_markup=reply.get_keyboard(
-                             mas,
+                             mas[:-2],
                              placeholder="Какой факультет тебя интересует?",
-                             sizes=(*[1] * (len(mas) - 2), 2)
+                             sizes=(*[1] * (len(mas) - 2),)
                          ))
     await state.set_state(filler.facultet_3)
 

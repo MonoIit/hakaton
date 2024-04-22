@@ -11,6 +11,18 @@ from kbrd import reply, inline
 
 root_1 = Router()
 
+async def getter(message: types.Message,session: AsyncSession):
+    dt = set()
+    btns = list()
+    for napr in await proccesing(session, await get_naprav_by_fac(message.text)):
+        if napr.mesta_b == 0:
+            dt.add(f"{napr.napravlenie} (ком.)")
+        else:
+            dt.add(napr.napravlenie)
+    for i in dt:
+        btns.append(f"{i}\n")
+    return btns
+
 class viewer(StatesGroup):
     facultet = State()
     napravlenie = State()
@@ -23,6 +35,8 @@ class viewer(StatesGroup):
         'viewer:napravlenie': 'Выберите направление подготовки',
         'viewer:name': 'Выберите программу подготовки'
     }
+
+    buttons = {}
 
 @root_1.message(StateFilter('*'), Command('назад'))
 @root_1.message(StateFilter('*'), F.text.casefold() == 'назад')
@@ -41,7 +55,8 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
             await state.set_state(previous)
             print(f"[INFO_root_1] {previous.state}")
             await message.answer(
-                f"Один шаг назад - два вперёд! \n{viewer.texts[previous.state]}"
+                f"Один шаг назад - два вперёд! \n{viewer.texts[previous.state]}",
+                reply_markup=viewer.buttons[previous.state]
             )
             return
         previous = step
@@ -51,22 +66,15 @@ async def cancel_handler(message: types.Message, state: FSMContext) -> None:
 @root_1.message(viewer.facultet, F.text)
 async def handle_message(message: types.Message, session: AsyncSession, state: FSMContext):
     await state.update_data(facultet=message.text)
-    dt = set()
-    btns = list()
-    for napr in await proccesing(session, await get_naprav_by_fac(message.text)):
-        if napr.mesta_b == 0:
-            dt.add(f"{napr.napravlenie} (ком.)")
-        else:
-            dt.add(napr.napravlenie)
-    for i in dt:
-        btns.append(f"{i}\n")
-    await message.answer("Выбирете какое направление вам нравиться:",
-                         reply_markup=reply.get_keyboard(
+    btns = await getter(message, session)
+    keybords = reply.get_keyboard(
                              btns+["назад", "отмена"],
                              placeholder="Выбирете какое направление вам нравиться:",
-                             sizes=(*[1]*len(dt), 2)
-                         ))
-
+                             sizes=(*[1]*len(btns), 2)
+                         )
+    await message.answer("Выбирете какое направление вам нравиться:",
+                         reply_markup=keybords)
+    viewer.buttons['viewer:napravlenie'] = keybords
     await state.set_state(viewer.napravlenie)
 
 @root_1.message(StateFilter("*"), F.text == "Вернуться в меню")
@@ -76,12 +84,11 @@ async def handle_message(message: types.Message, session: AsyncSession, state: F
 
 @root_1.message(StateFilter("*"), F.text == "Покажи мне направления")
 async def handle_message(message: types.Message, state: FSMContext):
+    keybords = reply.get_keyboard(facultets[:-3]+["назад", "отмена"], placeholder="Выбери факультет", sizes=(*[1]*(len(facultets)-3), 2))
     await message.answer("На какой факультет хочешь поступить?",
-                         reply_markup=reply.get_keyboard(
-                             facultets,
-                             placeholder="На какой факультет хочешь поступить?",
-                             sizes=(*[1]*11, 2)
-                         ))
+                         reply_markup=keybords
+                         )
+    viewer.buttons['viewer:facultet'] = keybords
     await state.set_state(viewer.facultet)
 
 
@@ -96,12 +103,14 @@ async def handle_message(message: types.Message, session: AsyncSession, state: F
     print(f"[INFO] {huh}")
     for prog in huh:
         btns.append(prog.name)
-    await message.answer("Выбирете какая программа вам нравиться:",
-                        reply_markup=reply.get_keyboard(
+    keybords = reply.get_keyboard(
                              btns+["назад", "отмена"],
                              placeholder="Выбирете какая программа вам нравиться:",
                              sizes=(*[1]*len(btns), 2)
-                         ))
+                         )
+    await message.answer("Выбирете какая программа вам нравиться:",
+                        reply_markup=keybords)
+    viewer.buttons['viewer:name'] = keybords
     await state.set_state(viewer.name)
 
 
@@ -137,7 +146,7 @@ async def handle_message(message: types.Message, session: AsyncSession, state: F
     else:
         await message.answer(f"Информации о проходных баллах неизвестна")
     await message.answer("Что дальше?", reply_markup=reply.get_keyboard(
-        ["назад", "Вернуться в меню"],
+        ["Вернуться в меню"],
         placeholder="Что дальше:?",
         sizes=([2])
     ))

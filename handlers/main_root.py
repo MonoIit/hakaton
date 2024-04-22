@@ -57,6 +57,10 @@ async def handle_message(message: types.Message, session: AsyncSession, state: F
     await message.answer("Раздел находится в разработке", reply_markup=get_keyboard(["отмена"], placeholder="В разработке", sizes=([1])))
     await state.set_state(stater.mag)
 
+@main_root.message(stater.bac, F.text == "Я уже знаю куда поступлю")
+async def handle_message(message: types.Message, session: AsyncSession, state: FSMContext):
+    await message.answer("Поздравляем тебя")
+
 @main_root.message(StateFilter('*'), Command('отмена'))
 @main_root.message(StateFilter('*'), F.text.casefold() == 'отмена')
 async def cancel_handler(message: types.Message, state: FSMContext) -> None:
