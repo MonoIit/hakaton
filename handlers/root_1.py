@@ -139,6 +139,7 @@ async def handle_message(message: types.Message, session: AsyncSession, state: F
     await message.answer(f"Информации о местах\n"
                          f"Бюджетных мест: {huh[0].mesta_b}\n"
                          f"В том числе целевых: {huh[0].mesta_cel}\n"
+                         f"Внебюджетный набор:\n"
                          f"Для граждан РФ: {huh[0].RF}\n"
                          f"Для иностранцев: {huh[0].nRF}")
     if len(balls) != 0:
